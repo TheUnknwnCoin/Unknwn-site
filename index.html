@@ -3,24 +3,23 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>$unknown Cases</title>
+  <title>$UNKNWN Cases</title>
   <style>
+    /* 🎨 Local Fonts */
     @font-face {
-  font-family: 'DS-Digital';
-  src: url('fonts/DS-Digital.ttf') format('truetype');
-}
-
+      font-family: 'DS-Digital';
+      src: url('fonts/DS-Digital.ttf') format('truetype');
+    }
     @font-face {
-  font-family: 'Glitch';
-  src: url('fonts/Glitch.woff') format('woff');
-}
-
+      font-family: 'Glitch';
+      src: url('fonts/Glitch.woff') format('woff');
+    }
     @font-face {
-  font-family: 'Yukarimobile';
-  src: url('fonts/Yukarimobile.ttf') format('truetype');
-}
+      font-family: 'Yukari';
+      src: url('fonts/yukarie.ttf') format('truetype');
+    }
 
-
+    /* 🔧 Styles */
     body {
       background-color: black;
       color: white;
@@ -36,9 +35,9 @@
     }
 
     .case {
-      font-family: 'Yukarimobile', sans-serif;
+      font-family: 'Yukari', sans-serif;
       font-size: 60px;
-      margin-bottom: 60px;
+      margin-bottom: 40px;
     }
 
     .everything {
@@ -50,6 +49,15 @@
     .unknown {
       font-family: 'Glitch', sans-serif;
       font-size: 80px;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .dollar {
+      font-family: 'DS-Digital', monospace;
+      font-size: 80px;
+      color: #00ffcc;
     }
 
     .contract {
@@ -60,7 +68,7 @@
     }
 
     .address {
-      font-family: 'Yukarimobile', sans-serif;
+      font-family: 'Yukari', sans-serif;
       font-size: 18px;
       background: white;
       color: black;
@@ -71,7 +79,7 @@
 
     .reveal-link {
       display: none;
-      font-family: 'Yukarimobile', sans-serif;
+      font-family: 'Yukari', sans-serif;
       font-size: 40px;
       margin-top: 20px;
     }
@@ -84,6 +92,23 @@
     .reveal-link a:hover {
       text-decoration: underline;
     }
+
+    #history {
+      margin-top: 60px;
+      font-family: 'Yukarie', sans-serif;
+      font-size: 20px;
+      text-align: center;
+    }
+
+    #history h2 {
+      font-family: 'Glitch', sans-serif;
+      font-size: 28px;
+      margin-bottom: 20px;
+    }
+
+    #history div {
+      margin: 5px 0;
+    }
   </style>
 </head>
 <body>
@@ -92,24 +117,40 @@
   <div class="reveal-link" id="reveal-link"></div>
 
   <div class="everything">Everything is</div>
-  <div class="unknown">$unknown</div>
+  <div class="unknown">
+    <span class="dollar">$</span>UNKNWN
+  </div>
 
   <div class="contract">contract address</div>
   <div class="address">{add pump.fun CA here}</div>
 
+  <!-- History of unlocked cases -->
+  <div id="history">
+    <h2>Unlocked Cases</h2>
+  </div>
+
   <script>
-    // 🔧 Define all cases here
+    // 🎯 Easy case setup
     const cases = [
-      { number: 1, target: "2025-09-08T00:00:00Z", link: "https://example.com/case1" },
-      { number: 2, target: "2025-09-10T00:00:00Z", link: "https://example.com/case2" },
-      { number: 3, target: "2025-09-12T00:00:00Z", link: "https://example.com/case3" }
+      { number: 1, date: "2025-09-07 19:00", link: "https://example.com/case1" },
+      { number: 2, date: "2025-09-08 19:00", link: "https://example.com/case2" },
+      { number: 3, date: "2025-09-09 19:00", link: "https://example.com/case3" }
     ];
 
     let currentCaseIndex = 0;
 
+    function parseCaseTime(c, prevTime = null) {
+      if (c.date) {
+        return new Date(c.date.replace(" ", "T"));
+      } else if (c.offset && prevTime) {
+        return new Date(prevTime.getTime() + c.offset * 1000);
+      }
+      return new Date();
+    }
+
     function findNextCase() {
       const now = new Date().getTime();
-      currentCaseIndex = cases.findIndex(c => new Date(c.target).getTime() > now);
+      currentCaseIndex = cases.findIndex(c => parseCaseTime(c).getTime() > now);
       if (currentCaseIndex === -1) {
         document.getElementById("countdown").style.display = "none";
         document.getElementById("case-text").innerText = "No more cases!";
@@ -120,9 +161,10 @@
       if (currentCaseIndex === -1) return;
 
       const activeCase = cases[currentCaseIndex];
-      const targetTime = new Date(activeCase.target).getTime();
+      const prevCase = currentCaseIndex > 0 ? parseCaseTime(cases[currentCaseIndex - 1]) : null;
+      const targetTime = parseCaseTime(activeCase, prevCase).getTime();
 
-      document.getElementById("case-text").innerText = `Case #${activeCase.number} – Locked`;
+      document.getElementById("case-text").innerText = `Case #${activeCase.number}`;
       document.getElementById("reveal-link").style.display = "none";
       document.getElementById("countdown").style.display = "block";
 
@@ -131,24 +173,25 @@
         const distance = targetTime - now;
 
         if (distance <= 0) {
-          // Reveal link for this case
+          // ✅ Add unlocked case to history
+          const history = document.getElementById("history");
+          const item = document.createElement("div");
+          item.innerHTML = `Case #${activeCase.number}: <a href="${activeCase.link}" target="_blank">${activeCase.link}</a>`;
+          history.appendChild(item);
+
+          // Hide countdown for this case
           document.getElementById("countdown").style.display = "none";
-          document.getElementById("case-text").innerText = `Case #${activeCase.number}`;
-          document.getElementById("reveal-link").innerHTML =
-            `👉 <a href="${activeCase.link}" target="_blank">${activeCase.link}</a>`;
-          document.getElementById("reveal-link").style.display = "block";
+          document.getElementById("reveal-link").style.display = "none";
 
-          clearInterval(timer); // stop current countdown
+          clearInterval(timer);
 
-          // After a short pause, roll to the next case
-          setTimeout(() => {
-            findNextCase();
-            startCountdown();
-          }, 5000); // wait 5 seconds before rolling to next case
+          // Move on to next case
+          findNextCase();
+          startCountdown();
           return;
         }
 
-        const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const hours = Math.floor(distance / (1000 * 60 * 60));
         const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
         const seconds = Math.floor((distance % (1000 * 60)) / 1000);
 
@@ -160,7 +203,6 @@
       var timer = setInterval(updateCountdown, 1000);
     }
 
-    // Initialize
     findNextCase();
     startCountdown();
   </script>
